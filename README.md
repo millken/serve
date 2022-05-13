@@ -11,6 +11,12 @@ $ serve
 2014/10/29 19:36:41 serving /home/mattn as / on :5000
 ```
 
+### Serve files with Gzip compress
+```
+$ serve -gzip
+2014/10/29 19:36:41 serving /home/mattn as / on :5000
+```
+
 ### Serve files under /tmp as /
 
 ```
@@ -39,7 +45,7 @@ golang
 ## Installation
 
 ```
-$ go install github.com/mattn/serve@latest
+$ go install github.com/millken/serve@latest
 ```
 
 ## License
@@ -49,4 +55,5 @@ MIT
 ## Author
 
 Yasuhiro Matsumoto (a.k.a mattn)
+Millken Chen (millken)
 

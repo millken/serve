@@ -3,17 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 )
 
 const name = "serve"
 
-const version = "0.0.2"
+const version = "0.0.3"
 
 var revision = "HEAD"
 
@@ -23,7 +21,7 @@ func main() {
 	root := flag.String("r", ".", "root path to serve")
 	certFile := flag.String("cf", "", "tls cert file")
 	keyFile := flag.String("kf", "", "tls key file")
-	dumpPost := flag.Bool("dumpPost", false, "dump post data")
+	gziped := flag.Bool("gzip", false, "gzip response")
 	showVersion := flag.Bool("v", false, "show version")
 	flag.Parse()
 
@@ -41,27 +39,17 @@ func main() {
 
 	http.Handle(*prefix, http.StripPrefix(*prefix, http.FileServer(http.Dir(*root))))
 
-	mux := http.DefaultServeMux.ServeHTTP
+	var handler http.Handler = http.DefaultServeMux
+	handler = Log(handler)
 
-	var logger http.HandlerFunc
-	if *dumpPost {
-		logger = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Print(r.RemoteAddr + " " + r.Method + " " + r.URL.String())
-			io.Copy(os.Stderr, r.Body)
-			os.Stderr.Write([]byte{'\n'})
-			mux(w, r)
-		})
-	} else {
-		logger = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Print(r.RemoteAddr + " " + r.Method + " " + r.URL.String())
-			mux(w, r)
-		})
+	if *gziped {
+		handler = Gzip(handler)
 	}
 
 	if *certFile != "" && *keyFile != "" {
-		err = http.ListenAndServeTLS(*addr, *certFile, *keyFile, logger)
+		err = http.ListenAndServeTLS(*addr, *certFile, *keyFile, handler)
 	} else {
-		err = http.ListenAndServe(*addr, logger)
+		err = http.ListenAndServe(*addr, handler)
 	}
 	if err != nil {
 		log.Fatalln(err)
