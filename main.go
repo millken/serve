@@ -21,7 +21,8 @@ func main() {
 	root := flag.String("r", ".", "root path to serve")
 	certFile := flag.String("cf", "", "tls cert file")
 	keyFile := flag.String("kf", "", "tls key file")
-	gziped := flag.Bool("gzip", false, "gzip response")
+	gziped := flag.Bool("gzip", false, "enable gzip compression")
+	zstd := flag.Bool("zstd", false, "enable zstd compression")
 	showVersion := flag.Bool("v", false, "show version")
 	flag.Parse()
 
@@ -40,10 +41,14 @@ func main() {
 	http.Handle(*prefix, http.StripPrefix(*prefix, http.FileServer(http.Dir(*root))))
 
 	var handler http.Handler = http.DefaultServeMux
-	handler = Log(handler)
+	handler = LogMiddleware(handler)
 
 	if *gziped {
-		handler = Gzip(handler)
+		handler = GzipCompressMiddleware(handler)
+	}
+
+	if *zstd {
+		handler = ZstdCompressMiddleware(handler)
 	}
 
 	if *certFile != "" && *keyFile != "" {
