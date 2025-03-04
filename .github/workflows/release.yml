@@ -10,6 +10,11 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+    - name: Debug Variables
+      run: |
+        echo "Ref: ${{ github.ref }}"
+        echo "Ref Name: ${{ github.ref_name }}"
+        echo "SHA: ${{ github.sha }}"
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Setup Go
@@ -24,7 +29,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
         tag: ${{ github.ref }}
-        title: Release ${{ github.ref }}
+        title: Release ${{ github.ref_name }}
     - name: Upload
       run: make upload
       env:
